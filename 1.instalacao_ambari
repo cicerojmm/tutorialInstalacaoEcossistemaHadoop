@@ -1,0 +1,148 @@
+/*
+// Instalação do Ecossistema Hadoop através da distribuição hortonworks.
+// Exemplo com 2 nós: master (namednode) e slave (datanode)
+// Sistema Operacional: CentOS 6
+*/
+
+######  Desativar Firewall Iptables
+service iptables status
+service iptables stop
+chconfig iptables off
+
+###### Editar arquivo sshd_config
+file=/etc/ssh/sshd_config
+cp -p $file $file.old && awk ' $1=="PermitRootLogin" {$2="yes"} $1=="PasswordAuthentication" {$2="yes"} $1=="#PubkeyAuthentication" {$1="PubkeyAuthentication"} {print} ' $file.old > $file
+service sshd restart
+
+##### Desativar SELinux
+vi /etc/sysconfig/selinux or /etc/selinux/config
+SELINUX=disabled
+
+##### DesativandoTransparent Huge 
+echo never > /sys/kernel/mm/transparent_hugepage/enabled
+
+####### Gerando Chave SSH (par de chave publica-privada)
+####### Obs: deixar chaves sem senha, para o ambari autenticar
+ssh-keygen -t rsa
+ssh-copy-id -i ~/.ssh/id_rsa.pub user@host.slave
+
+####### Instalação e configuração do MySQL para o hive, ambari e oozie
+yum install mysql-server
+/etc/init.d/mysqld start
+mysqladmin -u root password root
+
+#### Criação dos bancos de dados necessários
+mysqladmin -u root -proot create ambaridb
+mysqladmin -u root -proot create hivedb
+mysqladmin -u root -proot create ooziedb
+
+#### Acessando o MySQL como root
+mysql -u root -proot
+
+### Criação do banco de dados par ao Ambari com permissões
+USE ambaridb;
+CREATE USER 'ambari'@'localhost' IDENTIFIED BY 'ambari_password';
+GRANT ALL PRIVILEGES ON *.* TO 'ambari'@'localhost';
+CREATE USER 'ambari'@'%' IDENTIFIED BY 'ambari_password';
+GRANT ALL PRIVILEGES ON *.* TO 'ambari'@'%';
+FLUSH PRIVILEGES;
+
+### Criação do banco de dados par ao Hive com permissões
+USE hivedb;
+CREATE USER 'hive'@'localhost' IDENTIFIED BY 'hive_password';
+GRANT ALL PRIVILEGES ON *.* TO 'hive'@'localhost';
+CREATE USER 'hive'@'%' IDENTIFIED BY 'hive_password';
+GRANT ALL PRIVILEGES ON *.* TO 'hive'@'%';
+FLUSH PRIVILEGES;
+
+### Criação do banco de dados par ao Oozie com permissões
+USE ooziedb;
+CREATE USER 'oozie'@'localhost' IDENTIFIED BY 'oozie_password';
+GRANT ALL PRIVILEGES ON *.* TO 'oozie'@'localhost';
+CREATE USER 'oozie'@'%' IDENTIFIED BY 'oozie_password';
+GRANT ALL PRIVILEGES ON *.* TO 'oozie'@'%';
+FLUSH PRIVILEGES;
+
+### Saindo da interface de comando do MySQL
+exit;
+
+### Instação dos conectores do MySQL para o Ambari utilizar
+yum install mysql-connector-java*
+ 
+
+####### Instalação do Java 8
+yum -y install java-1.8.0-openjdk
+
+####### Configuração do repositório para o Ambari
+yum-config-manager --add-repo http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.6.3.0/hdp.repo
+yum-config-manager --add-repo http://public-repo-1.hortonworks.com/ambari/centos7/2.x/updates/2.6.0.0/ambari.repo
+yum repolist
+
+####### Instalação do Ambari
+yum -y install ambari-server
+
+####### Configuração inicial do Ambari
+ambari-server setup
+
+### Saída do último comando e os passos para configuração com o MySQL
+ Using python /usr/bin/python2.6
+ Setup ambari-server
+ Checking SELinux...
+ SELinux status is 'disabled'
+ Customize user account for ambari-server daemon [y/n] (n)? N
+ Adjusting ambari-server permissions and ownership...
+ Checking firewall status...
+ WARNING: iptables is running. Confirm the necessary Ambari ports are accessible. Refer to the Ambari documentation for more details on ports.
+ OK to continue [y/n] (y)? Y
+ Checking JDK...
+ [1] OpenJDK 1.8.0
+ [2] OpenJDK 1.7.0 (deprecated)
+ [3] Custom JDK
+ ==============================================================================
+ Enter choice (1): 1
+ Downloading JDK from http://birepo-build.svl.ibm.com/repos/IOP-UTILS/RHEL6/x86_64/1.1/openjdk/jdk-1.8.0.tar.gz to /var/lib/ambari-server/resources/jdk-1.8.0.tar.gz
+ jdk-1.8.0.tar.gz... 100% (56.5 MB of 56.5 MB)
+ Successfully downloaded JDK distribution to /var/lib/ambari-server/resources/jdk-1.8.0.tar.gz
+ Installing JDK to /usr/jdk64/
+ Successfully installed JDK to /usr/jdk64/
+ Completing setup...
+ Configuring database...
+ Enter advanced database configuration [y/n] (n)? y
+ Configuring database...
+ ==============================================================================
+ Choose one of the following options:
+ [1] - PostgreSQL (Embedded)
+ [2] - Oracle
+ [3] - MySQL
+ [4] - PostgreSQL
+ ==============================================================================
+ Enter choice (1): 3
+ Hostname (localhost): host
+ Port (3306): 3306
+ Database name (ambari): ambaridb
+ Username (ambari): ambari
+ Enter Database Password (bigdata): ambari_password
+ Re-enter password: ambari_password
+ Configuring ambari database...
+ Copying JDBC drivers to server resources...
+ Configuring remote database connection properties...
+ WARNING: Before starting Ambari Server, you must run the following DDL against the database to create the schema: /var/lib/ambari-server/resources/Ambari-DDL-MySQL-CREATE.sql
+ Proceed with configuring remote database connection properties [y/n] (y)? y
+ Extracting system views...
+ ....ambari-admin-2.1.0_IBM_5.jar
+ .
+ Adjusting ambari-server permissions and ownership...
+ Ambari Server 'setup' completed successfully.
+
+###### Configurações finais do Ambari
+mysql -u ambari -pambari_password ambaridb <  /var/lib/ambari-server/resources/Ambari-DDL-MySQL-CREATE.sql
+ambari-server setup --jdbc-db=mysql --jdbc-driver=/usr/share/java/mysql-connector-java.jar
+ambari-server start
+
+###### Criação do Usuário para o Hadoop
+su - hdfs
+hadoop fs -mkdir /user/admin
+hadoop fs -chown admin:hadoop /user/admin
+
+##### Os demais passos de instalação são feitas na interface Web do Ambari
+### acessando o Ip do nó master e a porta 8080
