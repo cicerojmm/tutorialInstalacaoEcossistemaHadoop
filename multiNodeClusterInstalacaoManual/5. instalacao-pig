@@ -1,0 +1,9 @@
+# Instalação
+wget http://mirror.nbtelecom.com.br/apache/pig/pig-0.17.0/pig-0.17.0.tar.gz
+tar -xvf pig-0.17.0.tar.gz
+mv pig-0.17.0 /opt/pig/
+
+## Variáveis de ambiente
+export PIG_HOME=/opt/pig
+export PATH=$PATH:$PIG_HOME/bin
+export PIG_CLASSPATH=$HADOOP_HOME/conf

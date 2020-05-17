@@ -1,0 +1,24 @@
+## Download e descompactação
+wget http://mirror.nbtelecom.com.br/apache/hive/hive-3.1.2/apache-hive-3.1.2-bin.tar.gz
+tar -xvf apache-hive-3.1.2-bin.tar.gz
+mv apache-hive-3.1.2-bin.tar.gz /opt/hive/
+
+
+# Configuração
+vi /opt/hive/conf
+cp hive-default.xml.template hive-default.xml
+cp hive-env.sh.template hive-env.sh
+
+vi /opt/hive/hive-env.sh
+HADOOP_HOME=/opt/hadoop
+export HIVE_CONF_DIR=/opt/hive/conf
+
+# Variaveis de ambiente
+export HIVE_HOME=/opt/hive
+export PATH=$PATH:$HIVE_HOME/bin
+export CLASSPATH=$CLASSPATH:$HADOOP_HOME/lib/*:.
+export CLASSPATH=$CLASSPATH:$HIVE_HOME/lib/*:.
+
+# Ajuste da versão de lib do hive
+rm /opt/hive/lib/guava-19.0.jar
+cp /opt/hadoop/share/hadoop/hdfs/lib/guava-27.0-jre.jar /opt/hive/lib/

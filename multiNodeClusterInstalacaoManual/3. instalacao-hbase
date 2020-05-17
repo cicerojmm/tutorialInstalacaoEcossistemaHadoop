@@ -1,0 +1,23 @@
+## Download e descompactação
+wget http://ftp.unicamp.br/pub/apache/hbase/2.2.4/hbase-2.2.4-bin.tar.gz
+tar -xvf hbase-2.2.4-bin.tar.gz
+mv hbase-2.2.4-bin.tar.gz /opt/hbase/
+
+
+# Configuração
+vi /opt/hbase/conf/hbase-site.xml
+
+<configuration>
+  <property>
+    <name>hbase.rootdir</name>
+    <value>file:///opt/hbase/hfiles</value>
+  </property>
+  <property>
+    <name>hbase.zookeeper.property.dataDir</name>
+    <value>/opt/zookeeper/data</value>
+  </property>
+</configuration>
+
+## Variáveis de ambiente
+export HBASE_HOME=/opt/hbase
+export PATH=$PATH:$HBASE_HOME/bin

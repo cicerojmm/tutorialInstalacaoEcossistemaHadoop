@@ -1,0 +1,17 @@
+## Download e descompactação
+wget http://archive.apache.org/dist/zookeeper/zookeeper-3.6.1/apache-zookeeper-3.6.1-bin.tar.gz
+tar -xvf apache-zookeeper-3.6.1-bin.tar.gz
+mv apache-zookeeper-3.6.1-bin.tar.gz /opt/zookeeper
+
+# Configuração
+vi /opt/zookeeper/conf/zoo.cfg
+
+- alterar configuração
+dataDir=/opt/zookeeper/data
+
+## Variáveis de ambiente Zookeeper
+export ZOOKEEPER_HOME=/opt/zookeeper
+export PATH=$PATH:$ZOOKEEPER_HOME/bin
+
+## iniciando o serviço
+zkServer.sh start

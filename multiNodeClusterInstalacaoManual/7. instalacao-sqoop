@@ -1,0 +1,20 @@
+# Instalação
+wget http://mirror.nbtelecom.com.br/apache/sqoop/1.4.7/sqoop-1.4.7.bin__hadoop-2.6.0.tar.gz
+tar -xvf sqoop-1.4.7.bin__hadoop-2.6.0.tar.gz
+mv sqoop-1.4.7.bin__hadoop-2.6.0/ /opt/sqoop
+
+## Variáveis de ambiente
+export SQOOP_HOME=/opt/sqoop
+export HCAT_HOME=$SQOOP_HOME/hcatalog
+export ACCUMULO_HOME=$SQOOP_HOME/accumulo
+export PATH=$PATH:$SQOOP_HOME/bin
+
+
+# Configurações
+vi /opt/sqoop/sqoop-env.SQOOP_HOME
+
+export HADOOP_COMMON_HOME=/opt/hadoop
+export HADOOP_MAPRED_HOME=/opt/hadoop
+export HBASE_HOME=/opt/hbase
+export HIVE_HOME=/opt/hive
+export ZOOCFGDIR=/opt/zookeeper/conf

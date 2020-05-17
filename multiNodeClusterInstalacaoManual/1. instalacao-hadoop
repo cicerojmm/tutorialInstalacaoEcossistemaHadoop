@@ -1,0 +1,142 @@
+ ########################################################
+# Instalação e inicialização do HDFS, YARN e MapReduce   #
+ ########################################################
+
+ Referencia: https://hadoopecosystemtable.github.io/
+
+## Nós do cluster
+hadoop-namenode.us-east1-b.c.hadoop-instalacao-manual.internal ## Namenode
+hadoop-datanode.us-east1-b.c.hadoop-instalacao-manual.internal ## DataNode
+
+## Update do Sistema Operacional
+yum update -y
+yum install wget
+
+## Criação de usuário para o Hadoop
+adduser hadoop
+passwd hadoop
+sudo usermod -aG wheel hadoop
+
+## Arquivos do Hadoop na versão 3.2.1
+http://ftp.unicamp.br/pub/apache/hadoop/common/hadoop-3.2.1/hadoop-3.2.1.tar.gz
+
+## Configuração de ssh sem senha em todos os servidores
+ssh-keygen -t rsa -P '' -f ~/.ssh/id_rsa
+cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+chmod 700 ~/.ssh
+
+## Variaveis de ambiente
+
+# Java
+export JAVA_HOME=/opt/jdk
+export PATH=$PATH:$JAVA_HOME/bin
+
+# Hadoop
+export HADOOP_HOME=/opt/hadoop
+export HADOOP_INSTALL=$HADOOP_HOME
+export HADOOP_COMMON_HOME=$HADOOP_HOME
+export HADOOP_MAPRED_HOME=$HADOOP_HOME
+export HADOOP_HDFS_HOME=$HADOOP_HOME
+export PATH=$PATH:$HADOOP_HOME/bin:$HADOOP_HOME/sbin
+
+## Em todos os servidores
+vi /opt/hadoop/etc/hadoop/core-site.xml
+
+<configuration>
+    <property>
+        <name>fs.default.name</name>
+        <value>hdfs://hadoop-namenode.us-east1-b.c.hadoop-instalacao-manual.internal:9000</value>
+    </property>
+    <property>
+      <name>hadoop.tmp.dir</name>
+      <value>/opt/hadoop</value>
+      <description>Folder base.</description>
+    </property>
+</configuration>
+
+---
+vi /opt/hadoop/etc/hadoop/mapred-site.xml 
+
+<configuration>
+  <property>
+    <name>mapreduce.framework.name</name>
+    <value>yarn</value>
+  </property>
+  <property>
+    <name>yarn.app.mapreduce.am.env</name>
+    <value>HADOOP_MAPRED_HOME=$HADOOP_HOME</value>
+  </property>
+  <property>
+    <name>mapreduce.map.env</name>
+    <value>HADOOP_MAPRED_HOME=$HADOOP_HOME</value>
+  </property>
+  <property>
+    <name>mapreduce.reduce.env</name>
+    <value>HADOOP_MAPRED_HOME=$HADOOP_HOME</value>
+  </property>
+</configuration>
+
+---
+vi /opt/hadoop/etc/hadoop/yarn-site.xml 
+
+<configuration>
+  <property>
+      <name>yarn.nodemanager.aux-services</name>
+      <value>mapreduce_shuffle</value>
+  </property>
+  <property>
+      <name>yarn.nodemanager.auxservices.mapreduce.shuffle.class</name>
+      <value>org.apache.hadoop.mapred.ShuffleHandler</value>
+  </property>
+  <property>
+      <name>yarn.resourcemanager.hostname</name>
+      <value>hadoop-namenode.us-east1-b.c.hadoop-instalacao-manual.internal</value>
+      <description>Hostname do Namenode.</description>
+  </property>
+</configuration>
+
+## Arquivos de configuração no NameNode
+vi /opt/hadoop/etc/hadoop/hdfs-site.xml
+
+<configuration>
+  <property>
+       <name>dfs.replication</name>
+       <value>1</value>
+  </property>
+  <property>
+    <name>dfs.namenode.name.dir</name>
+    <value>/opt/hadoop/namenode</value>
+  </property>
+</configuration>
+
+---
+vi /opt/hadoop/etc/hadoop/workers
+
+- adicionar todos os DataNodes
+
+
+## Arquivos de configuração no DataNode
+vi /opt/hadoop/etc/hadoop/hdfs-site.xml
+
+<configuration>
+  <property>
+       <name>dfs.replication</name>
+       <value>1</value>
+  </property>
+  <property>
+    <name>dfs.datanode.data.dir</name>
+    <value>/opt/hadoop/datanode</value>
+  </property>
+</configuration>
+
+
+## Iniciando HDFS no NameNode
+hdfs namenode -format
+start-dfs.sh
+start-yarn.sh
+
+## Gerenciador do Hadoop
+ip-ou-dns-namenode:9870
+
+## Gerenciador do YARN
+ip-ou-dns-namenode:8088

@@ -1,0 +1,8 @@
+# Instalação
+wget http://mirror.nbtelecom.com.br/apache/flume/1.9.0/apache-flume-1.9.0-bin.tar.gz
+tar -xvf apache-flume-1.9.0-bin.tar.gz
+mv apache-flume-1.9.0-bin /opt/flume
+
+## Variáveis de ambiente
+export FLUME_HOME=/opt/flume
+export PATH=$PATH:$FLUME_HOME/bin
