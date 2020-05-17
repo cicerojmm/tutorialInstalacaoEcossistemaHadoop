@@ -7,4 +7,6 @@ Neste repositório contém tutoriais para instalação e configuração do Ecoss
 
 O repositório ainda possui exemplos de ingestão de dados e execução de Jobs MapReduce.
 
+Link de referência: https://hadoopecosystemtable.github.io/
+
 ![](https://d24vu9lp3o1i5n.cloudfront.net/wp-content/uploads/2016/01/HadoopEcosystem-final1.png)
