@@ -1,0 +1,42 @@
+## instalar o Python em todos os servidores
+## Instalar a lib mrjob no namenode
+
+yum install -y python3
+pip3 install mrjob
+
+## configurar o mrjob
+vi ~/.mrjob.conf
+
+runners:
+ hadoop:
+  python_bin: /usr/bin/python3.6
+
+## baixar o dataset do GroupLens
+http://files.grouplens.org/datasets/movielens/ml-100k.zip
+unzip ml-100k.zip
+cd ml-100k
+
+## adicionar dataset no HDFS
+hdfs dfs -mkdir /mapred
+hdfs dfs -put u.data /mapred
+
+## adicionar o seguinte código no servidor
+
+-- avalia-filmes.py
+
+from mrjob.job import MRJob
+
+class MRAvaliaFilme(MRJob):
+    def mapper(self, key, line):
+        (userID, movieID, rating, timestamp) = line.split('\t')
+        yield rating, 1
+
+    def reducer(self, rating, occurences):
+        yield rating, sum(occurences)
+
+if __name__ == '__main__':
+    MRAvaliaFilme.run()
+
+
+# executar o Job com o mapreduce no namenode
+python3 avalia-filmes.py hdfs:///mapred/u.data -r hadoop
