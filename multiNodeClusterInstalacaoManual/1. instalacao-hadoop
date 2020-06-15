@@ -52,6 +52,10 @@ vi /opt/hadoop/etc/hadoop/core-site.xml
       <value>/opt/hadoop</value>
       <description>Folder base.</description>
     </property>
+    <property>
+        <name>fs.default.name</name>
+        <value>hdfs://hadoop-namenode.us-east1-b.c.hadoop-instalacao-manual.internal:9000</value>
+    </property>
 </configuration>
 
 ---
@@ -134,6 +138,7 @@ vi /opt/hadoop/etc/hadoop/hdfs-site.xml
 hdfs namenode -format
 start-dfs.sh
 start-yarn.sh
+mr-jobhistory-daemon.sh start historyserver
 
 ## Gerenciador do Hadoop
 ip-ou-dns-namenode:9870
